@@ -1,4 +1,4 @@
-# grlog - A golang rotating file logging package。
+# grlog - A golang rotating file logging package
 
 grlog is a simple log package that is extended from the log standard library.
 
@@ -17,7 +17,7 @@ import
 import "github.com/shaopson/grlog"
 ```
 
-### example
+### Example
 ```go
 package main
 
