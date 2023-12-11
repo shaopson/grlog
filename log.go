@@ -34,6 +34,10 @@ func New(outer io.Writer, level Level, flags int) *Logger {
 	return logger
 }
 
+func (self *Logger) Flags() int {
+	return self.logger.Flags()
+}
+
 func (self *Logger) SetFlags(flags int) {
 	self.logger.SetFlags(flags)
 }

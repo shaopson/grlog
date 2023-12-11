@@ -14,6 +14,10 @@ func Default() *Logger {
 	return std
 }
 
+func Flags() int {
+	return std.Flags()
+}
+
 func SetFlags(flags int) {
 	std.SetFlags(flags)
 }
