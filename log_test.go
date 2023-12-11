@@ -3,6 +3,7 @@ package grlog
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -10,11 +11,13 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	log := Default()
+	log := New(os.Stderr, LevelDebug, DefaultFlag)
+
 	log.Debug("debug message")
 	log.Info("info message")
 	log.Warn("warning message")
 	log.Error("error message")
+
 }
 
 func TestRotatingFile(t *testing.T) {
