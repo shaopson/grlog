@@ -3,14 +3,10 @@ package grlog
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
-	"sync/atomic"
 )
 
-var DefaultFlags = log.Ldate | log.Lshortfile | log.Ltime | log.Lmsgprefix
-
-var std = New(os.Stderr, LevelInfo, DefaultFlags)
+var std = New(os.Stderr, LevelInfo, Fstd)
 
 func Default() *Logger {
 	return std
@@ -24,35 +20,55 @@ func SetFlags(flags int) {
 	std.SetFlags(flags)
 }
 
+func Level() int {
+	return std.Level()
+}
+
+func SetLevel(level int) {
+	std.SetLevel(level)
+}
+
 func SetOutput(w io.Writer) {
 	std.SetOutput(w)
 }
 
 func Error(format string, v ...any) {
-	if atomic.LoadInt32(&std.isDiscard) != 0 {
+	std.mu.Lock()
+	if std.isDiscard {
+		std.mu.Unlock()
 		return
 	}
+	std.mu.Unlock()
 	std.logger.Output(2, fmt.Sprintf("[ERROR] "+format, v...))
 }
 
 func Warn(format string, v ...any) {
-	if std.level < LevelWarn || atomic.LoadInt32(&std.isDiscard) != 0 {
+	std.mu.Lock()
+	if std.level < LevelWarn || std.isDiscard {
+		std.mu.Unlock()
 		return
 	}
+	std.mu.Unlock()
 	std.logger.Output(2, fmt.Sprintf("[WARN] "+format, v...))
 }
 
 func Info(format string, v ...any) {
-	if std.level < LevelInfo || atomic.LoadInt32(&std.isDiscard) != 0 {
+	std.mu.Lock()
+	if std.level < LevelInfo || std.isDiscard {
+		std.mu.Unlock()
 		return
 	}
+	std.mu.Unlock()
 	std.logger.Output(2, fmt.Sprintf("[INFO] "+format, v...))
 }
 
 func Debug(format string, v ...any) {
-	if std.level < LevelDebug || atomic.LoadInt32(&std.isDiscard) != 0 {
+	std.mu.Lock()
+	if std.level < LevelDebug || std.isDiscard {
+		std.mu.Unlock()
 		return
 	}
+	std.mu.Unlock()
 	std.logger.Output(2, fmt.Sprintf("[DEBUG] "+format, v...))
 }
 
