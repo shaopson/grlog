@@ -79,13 +79,13 @@ func (self *Logger) Debug(format string, v ...any) {
 	self.logger.Output(2, fmt.Sprintf("[DEBUG] "+format, v...))
 }
 
-func (self *Logger) Panicf(format string, v ...any) {
+func (self *Logger) Panic(format string, v ...any) {
 	s := fmt.Sprintf(format, v...)
 	self.logger.Output(2, "[ERROR] "+s)
 	panic(s)
 }
 
-func (self *Logger) Fatalf(format string, v ...any) {
+func (self *Logger) Fatal(format string, v ...any) {
 	self.logger.Output(2, fmt.Sprintf("[ERROR] "+format, v...))
 	os.Exit(1)
 }

@@ -1,14 +1,16 @@
 package grlog
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"sync/atomic"
 )
 
-var DefaultFlag = log.Ldate | log.Lshortfile | log.Lmicroseconds
+var DefaultFlags = log.Ldate | log.Lshortfile | log.Ltime | log.Lmsgprefix
 
-var std = New(os.Stderr, LevelInfo, DefaultFlag)
+var std = New(os.Stderr, LevelInfo, DefaultFlags)
 
 func Default() *Logger {
 	return std
@@ -27,25 +29,40 @@ func SetOutput(w io.Writer) {
 }
 
 func Error(format string, v ...any) {
-	std.Error(format, v...)
+	if atomic.LoadInt32(&std.isDiscard) != 0 {
+		return
+	}
+	std.logger.Output(2, fmt.Sprintf("[ERROR] "+format, v...))
 }
 
 func Warn(format string, v ...any) {
-	std.Warn(format, v...)
+	if std.level < LevelWarn || atomic.LoadInt32(&std.isDiscard) != 0 {
+		return
+	}
+	std.logger.Output(2, fmt.Sprintf("[WARN] "+format, v...))
 }
 
 func Info(format string, v ...any) {
-	std.Info(format, v...)
+	if std.level < LevelInfo || atomic.LoadInt32(&std.isDiscard) != 0 {
+		return
+	}
+	std.logger.Output(2, fmt.Sprintf("[INFO] "+format, v...))
 }
 
 func Debug(format string, v ...any) {
-	std.Debug(format, v...)
+	if std.level < LevelDebug || atomic.LoadInt32(&std.isDiscard) != 0 {
+		return
+	}
+	std.logger.Output(2, fmt.Sprintf("[DEBUG] "+format, v...))
 }
 
-func Panicf(format string, v ...any) {
-	std.Panicf(format, v...)
+func Panic(format string, v ...any) {
+	s := fmt.Sprintf(format, v...)
+	std.logger.Output(2, "[ERROR] "+s)
+	panic(s)
 }
 
-func Fatalf(format string, v ...any) {
-	std.Fatalf(format, v...)
+func Fatal(format string, v ...any) {
+	std.logger.Output(2, fmt.Sprintf("[ERROR] "+format, v...))
+	os.Exit(1)
 }

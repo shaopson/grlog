@@ -11,12 +11,13 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	log := New(os.Stderr, LevelDebug, DefaultFlag)
+	log := New(os.Stderr, LevelDebug, DefaultFlags)
 
 	log.Debug("debug message")
 	log.Info("info message")
 	log.Warn("warning message")
 	log.Error("error message")
+	Info("info")
 
 }
 
@@ -26,7 +27,7 @@ func TestRotatingFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer writer.Close()
-	log := New(writer, LevelDebug, DefaultFlag)
+	log := New(writer, LevelDebug, DefaultFlags)
 
 	var wait sync.WaitGroup
 	buf := bytes.NewBuffer(nil)
@@ -52,7 +53,7 @@ func TestAsyncWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer writer.Close()
-	log := New(writer, LevelDebug, DefaultFlag)
+	log := New(writer, LevelDebug, DefaultFlags)
 
 	var wait sync.WaitGroup
 	buf := bytes.NewBuffer(nil)
