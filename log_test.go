@@ -11,7 +11,7 @@ import (
 )
 
 func TestLogger(t *testing.T) {
-	log := New(os.Stderr, LevelDebug, Fstd|Fshortfile)
+	log := New(os.Stderr, "", FlagStd|FlagSFile, LevelInfo)
 	log.SetLevel(LevelInfo)
 	log.Debug("debug message")
 	log.Info("info message")
@@ -25,12 +25,12 @@ func TestLogger(t *testing.T) {
 }
 
 func TestRotatingFile(t *testing.T) {
-	writer, err := NewRotatingFile("test.log", 5, 1024, false)
+	writer, err := NewRotateFile("test.log", 5, 1024, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer writer.Close()
-	log := New(writer, LevelDebug, Fstd)
+	log := New(os.Stderr, "", FlagStd|FlagLevel, LevelInfo)
 
 	var wait sync.WaitGroup
 	buf := bytes.NewBuffer(nil)
@@ -51,12 +51,12 @@ func TestRotatingFile(t *testing.T) {
 }
 
 func TestAsyncWrite(t *testing.T) {
-	writer, err := NewRotatingFile("async.log", 5, 1024, true)
+	writer, err := NewRotateFile("async.log", 5, 1024, true)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer writer.Close()
-	log := New(writer, LevelDebug, Fstd)
+	log := New(os.Stderr, "", FlagStd|FlagLevel, LevelInfo)
 
 	var wait sync.WaitGroup
 	buf := bytes.NewBuffer(nil)
@@ -74,4 +74,18 @@ func TestAsyncWrite(t *testing.T) {
 	}
 	wait.Wait()
 	fmt.Println("async write time:", time.Since(now))
+}
+
+func TestTimedRotateFile_Write(t *testing.T) {
+
+	writer, err := NewTimedRotateFile("a.log", 3, 1024, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log := Default()
+	log.SetOutput(writer)
+	for i := 0; i < 10; i++ {
+		log.Info("TestTimedRotateFile_Write")
+		//time.Sleep(time.Second)
+	}
 }

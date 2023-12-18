@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type RotatingFile struct {
+type RotateFile struct {
 	file        *os.File
 	fileName    string
 	maxFileSize int64
@@ -23,8 +23,12 @@ const (
 	defaultFileSize = 1 << 24 //16384 kb
 )
 
-func NewRotatingFile(fileName string, backupCount int, fileSize int64, async bool) (*RotatingFile, error) {
-	if fileSize < 0 {
+// fileName: log file path: a/b/c.log
+// backupCount: backup files, if backupCount=3: a.log  a.log-2023-12-01  a.log-2023-12-02  a.log-2023-12-03
+// fileSize: log file max size, default size 16m
+// async: asynchronous write
+func NewRotateFile(fileName string, backupCount int, fileSize int64, async bool) (*RotateFile, error) {
+	if fileSize <= 0 {
 		fileSize = defaultFileSize
 	} else if fileSize < 1024 {
 		return nil, errors.New("file size must be than greater 1024")
@@ -37,7 +41,7 @@ func NewRotatingFile(fileName string, backupCount int, fileSize int64, async boo
 	if err != nil {
 		return nil, err
 	}
-	rf := &RotatingFile{
+	rf := &RotateFile{
 		file:        file,
 		fileName:    fileName,
 		maxFileSize: fileSize,
@@ -52,8 +56,8 @@ func NewRotatingFile(fileName string, backupCount int, fileSize int64, async boo
 	return rf, nil
 }
 
-func (self *RotatingFile) Write(p []byte) (n int, err error) {
-	if err = self.rotating(int64(len(p))); err != nil {
+func (self *RotateFile) Write(p []byte) (n int, err error) {
+	if err = self.rotate(int64(len(p))); err != nil {
 		return
 	}
 	if self.async {
@@ -67,7 +71,7 @@ func (self *RotatingFile) Write(p []byte) (n int, err error) {
 	return self.file.Write(p)
 }
 
-func (self *RotatingFile) Close() error {
+func (self *RotateFile) Close() error {
 	if self.async {
 		self.async = false
 		close(self.writeChan)
@@ -76,11 +80,11 @@ func (self *RotatingFile) Close() error {
 	return self.file.Close()
 }
 
-func (self *RotatingFile) IsAsync() bool {
+func (self *RotateFile) IsAsync() bool {
 	return self.async
 }
 
-func (self *RotatingFile) rotating(wn int64) (err error) {
+func (self *RotateFile) rotate(wn int64) (err error) {
 	if self.backupCount < 1 {
 		return
 	}
@@ -113,7 +117,7 @@ func (self *RotatingFile) rotating(wn int64) (err error) {
 	return err
 }
 
-func (self *RotatingFile) awaitWrite() {
+func (self *RotateFile) awaitWrite() {
 	for data := range self.writeChan {
 		if _, err := self.file.Write(data); err != nil {
 			self.errorChan <- err
