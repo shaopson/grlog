@@ -54,7 +54,7 @@ writer, err := grlog.NewTimedRotateFile("test.log", 5, 0, false)
 
 ### Async Write
 ```go
-writer, err := grlog.NewRotatingFile("test.log", 5, -1, true)
+writer, err := grlog.NewRotateFile("test.log", 5, -1, true)
 // don`t forget close!!!
 defer writer.Close()
 ```
